@@ -1,5 +1,5 @@
 ---
-description: C++ coding guidelines synced from youtube/cobalt
+description: C++ Dos and Donts guidelines synced from youtube/cobalt
 applyTo: "**/*.cpp,**/*.h"
 ---
 
