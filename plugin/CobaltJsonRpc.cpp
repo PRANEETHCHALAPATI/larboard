@@ -69,7 +69,7 @@ uint32_t Cobalt::endpoint_deeplink(const Core::JSON::String& param)
 // Property: url - URL loaded in the browser
 // Return codes:
 //  - ERROR_NONE: Success
-uint32_t Cobalt::get_url(Core::JSON::String &response) const /* Browser */
+uint32_t Cobalt::get_url(Core::JSON::String &response) /* Browser */
 {
   ASSERT(_cobalt != nullptr);
   response = _cobalt->GetURL();
@@ -138,7 +138,7 @@ uint32_t Cobalt::get_state(Core::JSON::EnumType<StateType> &response) const /* S
 
   response.Clear();
 
-  PluginHost::IStateControl *stateControl(_cobalt->QueryInterface<PluginHost::IStateControl>());
+  auto stateControl = _cobalt->QueryInterface<PluginHost::IStateControl>();
   if (stateControl != nullptr) {
     PluginHost::IStateControl::state currentState = stateControl->State();
     switch (currentState) {
@@ -166,8 +166,7 @@ uint32_t Cobalt::set_state(const Core::JSON::EnumType<StateType> &param) /* Stat
   uint32_t result = Core::ERROR_BAD_REQUEST;
 
   if (param.IsSet()) {
-    PluginHost::IStateControl *stateControl(
-      _cobalt->QueryInterface<PluginHost::IStateControl>());
+    auto* stateControl = _cobalt->QueryInterface<PluginHost::IStateControl>();
     if (stateControl != nullptr) {
       Core::OptionalType<PluginHost::IStateControl::command> cmd;
 
@@ -203,8 +202,7 @@ uint32_t Cobalt::get_accessibility(JsonObject &response) const
   ASSERT(_cobalt != nullptr);
   uint32_t result = Core::ERROR_GENERAL;
 
-  Exchange::IDictionary *dict(
-    _cobalt->QueryInterface<Exchange::IDictionary>());
+  auto dict = _cobalt->QueryInterface<Exchange::IDictionary>();
   if (dict == nullptr) {
     SYSLOG(Logging::Error, (_T("IDictionary is not implemented")));
   } else {
@@ -236,8 +234,7 @@ uint32_t Cobalt::set_accessibility(const JsonObject &param)
 
   if (param.IsSet()) {
     result = Core::ERROR_GENERAL;
-    Exchange::IDictionary *dict(
-      _cobalt->QueryInterface<Exchange::IDictionary>());
+    auto* dict = _cobalt->QueryInterface<Exchange::IDictionary>();
     if (dict == nullptr) {
       SYSLOG(Logging::Error, (_T("IDictionary is not implemented")));
     } else {
