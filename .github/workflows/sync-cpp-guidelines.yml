@@ -19,26 +19,41 @@ jobs:
 
       - name: Fetch guidelines from cobalt and prepend frontmatter
         run: |
-          # Fetch the source guidelines file from the cobalt repo
-          curl -sSf \
-            "https://raw.githubusercontent.com/youtube/cobalt/27.lts/styleguide/c%2B%2B/c%2B%2B-dos-and-donts.md" \
-            -o /tmp/source-guidelines.md
+          BASE_URL="https://raw.githubusercontent.com/youtube/cobalt/27.lts/styleguide/c%2B%2B"
 
           # Ensure the instructions directory exists
           mkdir -p .github/instructions
 
-          # Write the instructions file with YAML frontmatter + fetched content
-          {
-            echo '---'
-            echo 'description: C++ coding guidelines synced from youtube/cobalt'
-            echo 'applyTo: "**/*.cpp,**/*.h"'
-            echo '---'
-            echo ''
-            cat /tmp/source-guidelines.md
-          } > .github/instructions/c++-dos-and-donts.instructions.md
+          # List of files to sync: "source-filename|output-name|description"
+          FILES=(
+            "c%2B%2B-dos-and-donts.md|c++-dos-and-donts.instructions.md|C++ Dos and Donts guidelines"
+            "blink-c%2B%2B.md|blink-c++.instructions.md|Blink C++ coding guidelines"
+            "c%2B%2B-features.md|c++-features.instructions.md|C++ approved language features"
+            "c%2B%2B.md|c++.instructions.md|C++ style guide"
+            "checks.md|checks.instructions.md|C++ checks guidelines"
+            "const.md|const.instructions.md|C++ const correctness guidelines"
+          )
+
+          for ENTRY in "${FILES[@]}"; do
+            SRC="${ENTRY%%|*}"
+            REST="${ENTRY#*|}"
+            OUT="${REST%%|*}"
+            DESC="${REST#*|}"
+
+            curl -sSf "${BASE_URL}/${SRC}" -o /tmp/source.md
+
+            {
+              echo '---'
+              echo "description: ${DESC} synced from youtube/cobalt"
+              echo 'applyTo: "**/*.cpp,**/*.h"'
+              echo '---'
+              echo ''
+              cat /tmp/source.md
+            } > ".github/instructions/${OUT}"
+          done
 
       - name: Commit and push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: sync C++ guidelines from youtube/cobalt@27.lts'
-          file_pattern: '.github/instructions/c++-dos-and-donts.instructions.md'
+          file_pattern: '.github/instructions/*.instructions.md'
