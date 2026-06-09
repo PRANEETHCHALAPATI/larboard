@@ -1,0 +1,44 @@
+name: Sync C++ Coding Guidelines
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at midnight UTC
+  workflow_dispatch:      # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout larboard
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Fetch guidelines from cobalt and prepend frontmatter
+        run: |
+          # Fetch the source guidelines file from the cobalt repo
+          curl -sSf \
+            "https://raw.githubusercontent.com/youtube/cobalt/27.lts/styleguide/c%2B%2B/c%2B%2B-dos-and-donts.md" \
+            -o /tmp/source-guidelines.md
+
+          # Ensure the instructions directory exists
+          mkdir -p .github/instructions
+
+          # Write the instructions file with YAML frontmatter + fetched content
+          {
+            echo '---'
+            echo 'description: C++ coding guidelines synced from youtube/cobalt'
+            echo 'applyTo: "**/*.cpp,**/*.h"'
+            echo '---'
+            echo ''
+            cat /tmp/source-guidelines.md
+          } > .github/instructions/c++-dos-and-donts.instructions.md
+
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: sync C++ guidelines from youtube/cobalt@27.lts'
+          file_pattern: '.github/instructions/c++-dos-and-donts.instructions.md'
